@@ -1,0 +1,16 @@
+{
+  "name": "ws_websocket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "demo1": "node ./src/demo1/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "express": "^4.16.2",
+    "ws": "^3.3.1"
+  }
+}
