@@ -4,31 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>ws模块实现websocket</title>
+    <title>ws模块股票数据更新</title>
     <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
-<body style="padding:10px">
-    <form style="width:520px; margin-bottom:10px">
-        <input class="form-control" type="text" style="margin-bottom:10px">
-        <button  type="button" class="btn btn-primary">点击发送</button>
-        <button type="button" class="btn btn-danger">点击关闭</button>
-    </form>
+<body>
+    <div class="vertical-center">
+        <div class="container">
+            <h1>Stock Chart over WebSocket</h1>
+            <button class="btn btn-primary">开始</button>
+            <button class="btn btn-danger">停止</button>
+            <table class="table" id="stockTable">
+                <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                </tr>
+                </thead>
+                <tbody id="stockRows">
+                <tr>
+                    <td>
+                        <h3>AAPL</h3></td>
+                    <td id="AAPL">
+                        <h3><span class="label label-default">95.00</span></h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>MSFT</h3></td>
+                    <td id="MSFT">
+                        <h3><span class="label label-default">50.00</span></h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>AMZN</h3></td>
+                    <td id="AMZN">
+                        <h3><span class="label label-default">300.00</span></h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>GOOG</h3></td>
+                    <td id="GOOG">
+                        <h3><span class="label label-default">550.00</span></h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h3>YHOO</h3></td>
+                    <td id="YHOO">
+                        <h3><span class="label label-default">35.00</span></h3>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
     <script>
-        var ws = new WebSocket('ws://localhost:8181')
-        ws.onopen = function(e){
-            console.log('开始连接服务器')
-            $('.btn-primary').click(function(){
-                ws.send($('.form-control').val())
-                $('.form-control').val('')
-             })
-             ws.onmessage = function(msg){
-                $('body').append('<p>'+ msg.data +'</p>')
+         var ws = new WebSocket("ws://localhost:8281");
+         var stock_request = { "stocks": ["AAPL", "MSFT", "AMZN", "GOOG", "YHOO"] };
+         var isClose = false;
+         var stocks = {
+             "AAPL": 0, "MSFT": 0, "AMZN": 0, "GOOG": 0, "YHOO": 0
+         };
+         function updataUI() {
+             ws.onopen = function (e) {
+                 console.log('Connection to server opened');
+                 isClose = false;
+                 ws.send(JSON.stringify(stock_request));
+                 console.log("sened a mesg");
              }
-             $('.btn-danger').click(function(){
-                ws.close()
-             })
-        }
+             // UI update function
+             var changeStockEntry = function (symbol, originalValue, newValue) {
+                 var valElem = $('#' + symbol + ' span');
+                 valElem.html(newValue.toFixed(2));
+                 if (newValue < originalValue) {
+                     valElem.addClass('label-danger');
+                     valElem.removeClass('label-success');
+                 } else if (newValue > originalValue) {
+                     valElem.addClass('label-success');
+                     valElem.removeClass('label-danger');
+                 }
+             }
+             // WebSocket message handler
+             ws.onmessage = function (e) {
+                 var stocksData = JSON.parse(e.data);
+                 console.log(stocksData);
+                 for (var symbol in stocksData) {
+                     if (stocksData.hasOwnProperty(symbol)) {
+                         changeStockEntry(symbol, stocks[symbol], stocksData[symbol]);
+                         stocks[symbol] = stocksData[symbol];
+                     }
+                 }
+             };
+         }
+     
+         updataUI();
+     
+         $(".btn-primary").click(function() {
+             if (isClose) {
+                 ws = new WebSocket("ws://localhost:8281");
+             }
+             updataUI();
+         });
+         $(".btn-danger").click(function() {
+             ws.close();
+         });
+     
+         ws.onclose = function (e) {
+             console.log("Connection closed", e);
+             isClose = true;
+         };
         
     </script>
 </body>
