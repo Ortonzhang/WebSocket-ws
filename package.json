@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "demo1": "node ./src/demo1/server.js"
+    "demo1": "node ./src/demo1/server.js",
+    "demo2": "node ./src/demo2/server.js"
   },
   "keywords": [],
   "author": "",
